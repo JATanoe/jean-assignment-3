@@ -20,7 +20,7 @@ public class UserService {
 
 	public UserService() {
 		this.scanner = new Scanner(System.in);
-		this.loginAttemptsLeft = 4;
+		this.loginAttemptsLeft = 5;
 		this.isLoggedIn = false;
 		this.currentUser = null;
 	}
@@ -113,6 +113,12 @@ public class UserService {
 		this.getData();
 		
 		while (!this.isLoggedIn()) {
+			// Check the number of login attempts left
+			if (this.getLoginAttemptsLeft() < 1) {
+				System.out.println("Too many failed login attempts, you are now locked out.");
+				break;
+			}
+			
 			// Prompt the user to enter a username
 			this.setInput("Enter your email: ");
 			String username = this.getInput();
@@ -123,14 +129,8 @@ public class UserService {
 
 			// Validate the user credentials
 			this.validate(username, password);
-
-			// Check the number of login attempts left
-			if (this.getLoginAttemptsLeft() == 0) {
-				System.out.println("Too many failed login attempts, you are now locked out.");
-				break;
-			}
 			// Log in and greet the matching user
-			else if (this.getCurrentUser() != null) {
+			if (this.getCurrentUser() != null) {
 				this.setLoggedIn(true);
 				System.out.println("Welcome " + this.currentUser.getName());
 				break;
