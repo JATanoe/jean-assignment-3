@@ -8,7 +8,6 @@ import java.util.Scanner;
 
 public class UserService {
 
-	private BufferedReader reader = null;
 	private Scanner scanner;
 
 	private String input;
@@ -23,7 +22,6 @@ public class UserService {
 		this.scanner = new Scanner(System.in);
 		this.loginAttemptsLeft = 4;
 		this.isLoggedIn = false;
-		this.users = new User[10];
 		this.currentUser = null;
 	}
 
@@ -52,45 +50,20 @@ public class UserService {
 		this.loginAttemptsLeft -= loginAttemptsLeft;
 	}
 
+	public User[] getUsers() {
+		return users;
+	}
+
+	public void setUsers(User[] users) {
+		this.users = users;
+	}
+
 	public void setCurrentUser(User currentUser) {
 		this.currentUser = currentUser;
 	}
 
 	public User getCurrentUser() {
 		return this.currentUser;
-	}
-
-	public User[] getData() throws IOException {
-		try {
-			this.reader = new BufferedReader(new FileReader("data.txt"));
-
-			// Declaring and initializing a line of string
-			String line;
-
-			// Declares and initializing a line counter
-			int count = 0;
-
-			while ((line = this.reader.readLine()) != null) {
-				// Parse line of text from the file
-				String[] values = line.split(",");
-
-				// Create an User object
-				User user = this.createUser(values);
-
-				// Add new User to the User objects Arrays
-				this.users[count] = user;
-
-				// Increment count by 1
-				count++;
-			}
-
-			// Copy the User objects Array
-			// and truncate the length to the number of lines
-			return Arrays.copyOf(this.users, count);
-
-		} finally {
-			this.reader.close();
-		}
 	}
 
 	// Create User object from an String Array
@@ -102,6 +75,32 @@ public class UserService {
 		return new User(username, password, name);
 	}
 
+	public void getData() throws IOException {
+		FileService fileService = new FileService();
+		String[] lines = fileService.readFile();
+		User[] users = new User[lines.length];
+
+		// Declares and initializing a line counter
+		int count = 0;
+		
+		for (String line: lines) {
+			// Parse line of text from the file
+			String[] values = line.split(",");
+
+			// Create an User object
+			User user = this.createUser(values);
+
+			// Add created User to User objects Arrays
+			users[count] = user;
+
+			// Increment count by 1
+			count++;
+		}
+		
+		this.setUsers(users);
+
+	}
+
 	private void validate(String _username, String _password) {
 		for (User user : this.users) {
 			if (user.getUsername().equalsIgnoreCase(_username) & user.getPassword().equals(_password)) {
@@ -111,9 +110,8 @@ public class UserService {
 	}
 
 	public void run() throws IOException {
-		// Store the data
-		this.users = this.getData(); 
-
+		this.getData();
+		
 		while (!this.isLoggedIn()) {
 			// Prompt the user to enter a username
 			this.setInput("Enter your email: ");
@@ -125,14 +123,13 @@ public class UserService {
 
 			// Validate the user credentials
 			this.validate(username, password);
-			
+
 			// Check the number of login attempts left
 			if (this.getLoginAttemptsLeft() == 0) {
 				System.out.println("Too many failed login attempts, you are now locked out.");
 				break;
-				
-			} 
-			// Log in and greet the matching user 
+			}
+			// Log in and greet the matching user
 			else if (this.getCurrentUser() != null) {
 				this.setLoggedIn(true);
 				System.out.println("Welcome " + this.currentUser.getName());
